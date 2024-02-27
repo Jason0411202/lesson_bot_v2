@@ -8,7 +8,8 @@ WORKDIR /usr/src/app
 COPY . .
 
 # 安裝依賴
-RUN pip install requests bs4 numpy easyocr pillow python-dotenv
+RUN pip install --no-cache-dir beautifulsoup4 numpy requests python-dotenv easyocr
+
 
 # 暴露應用程式需要的端口
 EXPOSE 80
