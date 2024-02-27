@@ -74,27 +74,31 @@ def getSessionID():
             return session
         except:
             failCounter+=1
-            if failCounter>100: # 失敗次數超過100次則退出程式
+            if failCounter>500: # 失敗次數超過500次則退出程式
                 print("captcha fail too many times, exit.")
                 sys.exit()
 
 def main():
     url = "https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/Add_Course01.cgi" # request URL
     while(1):
-        payload['session_id'] = getSessionID()
+        sessionid = getSessionID()
+        for i in range(len(payload)):
+            payload[i]['session_id'] = sessionid
 
         try:
-            for i in range(100):
-                response = requests.post(url, data=payload) # 發送POST請求
-                response.encoding = 'utf-8'
-                print("響應內容:", response.text) # 印出請求的狀態碼和內容
-                print("本次登入第", i+1, "次搶課")
-                if "衝堂" in response.text:
-                    print("回應中包含 '衝堂'，退出程式")
-                    sys.exit()
+            for i in range(150//len(payload)):
+                for j in range(len(payload)):
+                    print(payload[j])
+                    response = requests.post(url, data=payload[j]) # 發送POST請求
+                    response.encoding = 'utf-8'
+                    print("響應內容:", response.text) # 印出請求的狀態碼和內容
+                    print("本次登入第", i+1, "輪搶課")
+                    if "衝堂" in response.text:
+                        print("回應中包含 '衝堂', 已搶到課程")
 
-                time.sleep(1)
+                    time.sleep(0.2)
         except:
+            print("發生錯誤，重新開始")
             continue
 
 main()
