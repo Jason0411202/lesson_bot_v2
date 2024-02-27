@@ -88,6 +88,8 @@ def getSessionID():
 
 def main():
     url = "https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/Add_Course01.cgi" # request URL
+
+    counter=0
     while(1):
         sessionid = getSessionID()
         for i in range(len(payload)):
@@ -103,7 +105,9 @@ def main():
                     print("本次登入第", i+1, "輪搶課")
                     if "衝堂" in response.text:
                         print("回應中包含 '衝堂', 已搶到課程")
-
+                    
+                    counter+=1
+                    print("累計搶課次數: ", counter)
                     time.sleep(0.2)
         except:
             print("發生錯誤，重新開始")
