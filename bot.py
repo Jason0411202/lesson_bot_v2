@@ -83,15 +83,18 @@ def main():
     while(1):
         payload['session_id'] = getSessionID()
 
-        for i in range(100):
-            response = requests.post(url, data=payload) # 發送POST請求
-            response.encoding = 'utf-8'
-            print("響應內容:", response.text) # 印出請求的狀態碼和內容
-            print("本次登入第", i+1, "次搶課")
-            if "衝堂" in response.text:
-                print("回應中包含 '衝堂'，退出程式")
-                sys.exit()
+        try:
+            for i in range(100):
+                response = requests.post(url, data=payload) # 發送POST請求
+                response.encoding = 'utf-8'
+                print("響應內容:", response.text) # 印出請求的狀態碼和內容
+                print("本次登入第", i+1, "次搶課")
+                if "衝堂" in response.text:
+                    print("回應中包含 '衝堂'，退出程式")
+                    sys.exit()
 
-            time.sleep(1)
+                time.sleep(1)
+        except:
+            continue
 
 main()
