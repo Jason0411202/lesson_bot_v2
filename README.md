@@ -24,7 +24,7 @@ PAYLOAD=[{"session_id":"你的 session_id","dept":"5304","grade":"3","cge_cate":
 ```
 
 # 執行程式
-1. 在電腦上安裝 docker
+1. 在電腦上安裝 docker (註一)
 2. 輸入以下指令
 windows
 ```
@@ -232,3 +232,18 @@ wrapt                         1.14.1
 wsproto                       1.2.0
 yarl                          1.9.2
 ```
+# 註一
+## 在 windows 上安裝 Docker
+1. 前往官網下載 Docker Desktop
+	> https://docs.docker.com/desktop/install/windows-install/
+2. 執行剛剛下載的 Docker Desktop Installer.exe
+3. 點擊 setting > Resourses > Disk image location 修改 Docker Image 的存放位置 (因為 Docker Image 很大，存在系統碟浪費空間)
+
+## 在 linux 上安裝 Docker
+1. 貼上來自官網的指令
+	> https://docs.docker.com/engine/install/ubuntu/
+
+2. 輸入以下指令確定是否成功安裝
+	```
+	sudo docker version
+	```
