@@ -1,25 +1,19 @@
-# 使用輕量級的基礎鏡像
-FROM python:3.11-alpine AS builder
+# 使用 Python 官方提供的基礎映像
+FROM python:3.11
+
+# 安裝必要的系統套件和工具
+RUN apk --no-cache add build-base
 
 # 設置工作目錄
 WORKDIR /usr/src/app
+
+# 將本地目錄下的所有文件都拷貝到容器的工作目錄下
+COPY . .
 
 # 安裝依賴
-RUN apk --no-cache add build-base \
-    && pip install --no-cache-dir beautifulsoup4 numpy requests python-dotenv easyocr \
+RUN pip install --no-cache-dir beautifulsoup4 numpy requests python-dotenv \
+    && pip install --no-cache-dir easyocr==1.7.0 \
     && apk del build-base
-
-# 第二階段，使用更小的基礎鏡像
-FROM python:3.11-alpine
-
-# 設置工作目錄
-WORKDIR /usr/src/app
-
-# 從第一階段複製依賴
-COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
-
-# 複製其他文件
-COPY . .
 
 # 暴露應用程式需要的端口
 EXPOSE 80
