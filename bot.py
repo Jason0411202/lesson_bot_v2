@@ -2,8 +2,12 @@ import json
 import os
 import sys
 import time
+from bs4 import BeautifulSoup
+import numpy as np
 import requests
 from dotenv import load_dotenv
+from PIL import Image
+import easyocr
 
 # 從.env文件中載入環境變數
 load_dotenv()
@@ -16,19 +20,78 @@ print(PAYLOAD)
 payload = json.loads(PAYLOAD)
 
 def getSessionID():
-    # @蘇 幫我寫這段
-    return ""
+    failCounter=0
+    while(1):
+        try:
+            # 獲取驗證碼圖片的 URL 及 PHPSESSID
+            captcha_image_url = 'https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/captcha.php'
+            session = requests.Session()
+            captcha_image_response = session.get(captcha_image_url)
 
-url = "https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/Add_Course01.cgi" # request URL
-while(1):
-    payload['session_id'] = getSessionID()
+            # 取得回應中的cookies
+            cookies = session.cookies
 
-    for i in range(100):
-        response = requests.post(url, data=payload) # 發送POST請求
-        response.encoding = 'utf-8'
-        print("響應內容:", response.text) # 印出請求的狀態碼和內容
-        if "衝堂" in response.text:
-            print("回應中包含 '衝堂'，退出程式")
-            sys.exit()
+            # 輸出所有cookies的名稱和值
+            for cookie in cookies:
+                print("Cookie名稱:", cookie.name)
+                print("Cookie值:", cookie.value)
+            
+            # 寫入圖片
+            with open('captcha.png', 'wb') as f:
+                f.write(captcha_image_response.content)
 
-        time.sleep(5)
+            # 載入圖片並用 EasyOCR 辨識
+            reader = easyocr.Reader(['en'])  # 指定要識別的語言，這裡設定了繁體中文和英文
+            result = reader.readtext('captcha.png')
+            captcha_Text = result[0][1]
+            print("captcha_Text: ", captcha_Text)
+
+            # 送出登入請求
+            url = "https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/bookmark.php"
+            data = {
+                'version': '0',
+                'id': ACCOUNT,
+                'password': PASSWORD,
+                'term': 'on',
+                'm': '0',
+                'captcha_input': captcha_Text
+            }
+            cookies = {
+                'PHPSESSID': cookies['PHPSESSID']
+            }
+
+            # 發送 POST 請求
+            session = requests.Session()
+            response = session.post(url, data=data, cookies=cookies)
+            response.encoding='utf-8'
+            print(response.text)
+            
+            # 取得 response 中的 session_id，若成功則返回，失敗則重試
+            soup = BeautifulSoup(response.text, 'html.parser')
+            meta = soup.find('meta', {'http-equiv': 'refresh'})
+            content = meta['content']
+            session = content.split('URL=bookmark.php?session_id=')[1]
+            print("login: ", session)
+            return session
+        except:
+            failCounter+=1
+            if failCounter>100: # 失敗次數超過100次則退出程式
+                print("captcha fail too many times, exit.")
+                sys.exit()
+
+def main():
+    url = "https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/Add_Course01.cgi" # request URL
+    while(1):
+        payload['session_id'] = getSessionID()
+
+        for i in range(100):
+            response = requests.post(url, data=payload) # 發送POST請求
+            response.encoding = 'utf-8'
+            print("響應內容:", response.text) # 印出請求的狀態碼和內容
+            if "衝堂" in response.text:
+                print("回應中包含 '衝堂'，退出程式")
+                sys.exit()
+
+            time.sleep(5)
+
+main()
