@@ -3,10 +3,10 @@ import os
 import sys
 import time
 from bs4 import BeautifulSoup
-import numpy as np
 import requests
 from dotenv import load_dotenv
-import easyocr
+import pytesseract
+from PIL import Image
 
 # 從.env文件中載入環境變數
 load_dotenv()
@@ -22,6 +22,7 @@ def getSessionID():
     failCounter=0
     while(1):
         try:
+            print("嘗試獲取 session_id")
             # 獲取驗證碼圖片的 URL 及 PHPSESSID
             captcha_image_url = 'https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/captcha.php'
             session = requests.Session()
@@ -39,11 +40,15 @@ def getSessionID():
             with open('captcha.png', 'wb') as f:
                 f.write(captcha_image_response.content)
 
-            # 載入圖片並用 EasyOCR 辨識
-            reader = easyocr.Reader(['en'])  # 指定要識別的語言，這裡設定了繁體中文和英文
-            result = reader.readtext('captcha.png')
-            captcha_Text = result[0][1]
+            # 載入圖片並用 pytesseract 辨識
+            image = Image.open('captcha.png')
+            # tessdata_dir_config = '--tessdata-dir "."' # 載入已訓練好的 Tesseract 模型 ccu.traineddata
+            # captcha_Text = pytesseract.image_to_string(image, config=tessdata_dir_config)
+                
+            captcha_Text = pytesseract.image_to_string(image, lang='eng')
+            captcha_Text = ''.join(e for e in captcha_Text if e.isalnum())
             print("captcha_Text: ", captcha_Text)
+            print("len(captcha_Text): ", len(captcha_Text))
 
             # 送出登入請求
             url = "https://kiki.ccu.edu.tw/~ccmisp06/cgi-bin/class_new/bookmark.php"
@@ -59,6 +64,8 @@ def getSessionID():
                 'PHPSESSID': cookies['PHPSESSID']
             }
 
+            print("send data: \n", data)
+
             # 發送 POST 請求
             session = requests.Session()
             response = session.post(url, data=data, cookies=cookies)
@@ -73,6 +80,7 @@ def getSessionID():
             print("login: ", session)
             return session
         except:
+            time.sleep(1)
             failCounter+=1
             if failCounter>500: # 失敗次數超過500次則退出程式
                 print("captcha fail too many times, exit.")
