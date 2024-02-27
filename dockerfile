@@ -13,9 +13,6 @@ WORKDIR /usr/src/app
 # 将本地目录下的所有文件都拷贝到容器的工作目录下
 COPY . .
 
-# 將 ccu.traineddata 拷貝到 /usr/share/tesseract-ocr/4.00/tessdata
-COPY ccu.traineddata /usr/share/tesseract-ocr/5/tessdata
-
 # 安装依赖
 RUN pip install requests BeautifulSoup4 python-dotenv pytesseract
 
